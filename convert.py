@@ -227,7 +227,8 @@ def convert_model(path, dtype):
 import numpy as np
 def convert():
     # dtype = np.float16 if mybits.get()==16 else np.float32
-    dtype = np.float32
+    # dtype = np.float32 # revise
+    dtype = np.float16
     convert_model("/home/ros/share_dir/gitrepos/rwkv-onnx/opset11_onnx/RWKV-5-World-0.4B-v2-20231113-ctx4096.pth", dtype)
     
 convert()

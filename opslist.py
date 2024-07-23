@@ -140,6 +140,8 @@ class RWKVOnnxOps():
 
             return name
         
+        print("dtype:", dtype)
+        print("fp32inout: ", fp32inout)
         self.convertToFloat16 = convertToFloat16 if (dtype == onnx.TensorProto.FLOAT16 and fp32inout) else lambda x: x
         self.convertToFloat32 = convertToFloat32 if (dtype == onnx.TensorProto.FLOAT16 and fp32inout) else lambda x: x
 
