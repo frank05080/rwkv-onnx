@@ -4,3 +4,4 @@ __pycache__
 *.pth
 *.ort
 *.config
+opset11_onnx

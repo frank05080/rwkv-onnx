@@ -58,10 +58,10 @@ def initONNXFile(path, useAllAvailableProviders=False):
             for i in range(len(input_names)-1):
                 # print(input_names[i+1])
                 if "wkv" in input_names[i+1]:
-                    inputs[input_names[i+1]] = statei2[i-statei.__len__()]
+                    inputs[input_names[i+1]] = statei2[i-statei.__len__()] # statei2 has shape (24,16,64,64)
                 else:
                     # print(i, statei.__len__())
-                    inputs[input_names[i+1]] = statei[i]
+                    inputs[input_names[i+1]] = statei[i] # statei has shape [48, 1024]
 
             outputs = sess.run(output_names, inputs)
             # print(outputs[1][23])
@@ -72,7 +72,7 @@ def initONNXFile(path, useAllAvailableProviders=False):
 
     # emptyState = []
     emptyState = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum)
-    emptyState2 = np.array(([[[[0.01]*64]*64]*40])*layers, typenum)
+    emptyState2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
     print (emptyState.shape)
     print (emptyState2.shape)
 
@@ -114,10 +114,11 @@ model, state, state2 = initONNXFile(inquirer.list_input("Select model", choices=
 
 from tokenizer import world as tokenizer
 
-prompt = tokenizer.encode("### Instruction:\nPlease write a short story of a man defeating a two headed dragon###Result\n")
+# prompt = tokenizer.encode("### Instruction:\nPlease write a short story of a man defeating a two headed dragon###Result\n")
+prompt = tokenizer.encode("### Instruction:\n什么是黑洞###Result\n")
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
-    logits, state, state2 = model.forward(token,state, state2)
+    logits, state, state2 = model.forward(token, state, state2)
 
 print("Loaded prompt.")
 

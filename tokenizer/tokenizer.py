@@ -1,7 +1,4 @@
 class RWKV_TOKENIZER():
-    table: list[list[list[bytes]]]
-    good: list[set[int]]
-    wlen: list[int]
     def __init__(self, file_name):
         self.idx2token = {}
         sorted = [] # must be already sorted
@@ -33,7 +30,7 @@ class RWKV_TOKENIZER():
                 self.wlen[s0] = max(self.wlen[s0], len(s))
                 self.good[s0].add(s1)
 
-    def encodeBytes(self, src: bytes) -> list[int]:
+    def encodeBytes(self, src: bytes):
         src_len: int = len(src)
         tokens: list[int] = []
         i: int = 0
@@ -75,6 +72,6 @@ class RWKV_TOKENIZER():
         print()
 
 
-from transformers import AutoTokenizer
+# from transformers import AutoTokenizer
 
-neox = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+# neox = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")

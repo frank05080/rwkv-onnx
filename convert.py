@@ -206,72 +206,74 @@ def convert_model(path, dtype):
         list(filter(lambda x: "blocks" in x and "ln1.bias" in x, w.keys())))
 
 
-    ops = opslist.RWKVOnnxOps(layers,dims,dtype=dtype, opsVersion=version.get(), externalData=use_external_data.get(), splitExternalData=splitExternalData.get(), fp32inout=fp32inout.get(), quantized=mybits.get()==8, heads=headsnume)
+    ops = opslist.RWKVOnnxOps(layers,dims,dtype=dtype, opsVersion=11, externalData=True, splitExternalData=False, fp32inout=True, quantized=False, heads=headsnume)
 
     RnnRWKV(ops,w)
 
 
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 
 
-# Create the main window
-root = tk.Tk()
-root.title("File Converter")
+# # Create the main window
+# root = tk.Tk()
+# root.title("File Converter")
 
-# Define the functions
-def choose_input_file():
-    input_file = filedialog.askopenfilename()
-    input_path.set(input_file)
+# # Define the functions
+# def choose_input_file():
+#     input_file = filedialog.askopenfilename()
+#     input_path.set(input_file)
 
 import numpy as np
 def convert():
-    path = input_path.get()
-    dtype = np.float16 if mybits.get()==16 else np.float32
-    convert_model(path, dtype)
+    # dtype = np.float16 if mybits.get()==16 else np.float32
+    dtype = np.float32
+    convert_model("/home/ros/share_dir/gitrepos/rwkv-onnx/RWKV-5-World-0.4B-v2-20231113-ctx4096.pth", dtype)
+    
+convert()
 
-# Define the variables
-input_path = tk.StringVar()
-mybits = tk.IntVar(value=8)
-use_external_data = tk.BooleanVar(value=True)
-splitExternalData = tk.BooleanVar(value=False)
-fp32inout = tk.BooleanVar(value=False)
-# version, number either 15/17
-version = tk.IntVar(value=15)
+# # Define the variables
+# input_path = tk.StringVar()
+# mybits = tk.IntVar(value=8)
+# use_external_data = tk.BooleanVar(value=True)
+# splitExternalData = tk.BooleanVar(value=False)
+# fp32inout = tk.BooleanVar(value=False)
+# # version, number either 15/17
+# version = tk.IntVar(value=15)
 
-# Create the widgets
-input_label = tk.Label(root, text="Input Path:")
-opsetlabel = tk.Label(root, text="opset:")
-bitlabel = tk.Label(root, text="bit")
-input_entry = tk.Entry(root, textvariable=input_path)
-input_button = tk.Button(root, text="Browse...", command=choose_input_file)
-
-
-
-bits = tk.OptionMenu(root, mybits, 8, 16, 32)
-check_button3 = tk.Checkbutton(root, text="External Data", variable=use_external_data)
-check_button4 = tk.Checkbutton(root, text="Split External Data", variable=splitExternalData)
-check_button5 = tk.Checkbutton(root, text="Float32 inputs/outputs", variable=fp32inout)
-input_select = tk.OptionMenu(root, version, 15, 17, 18)
+# # Create the widgets
+# input_label = tk.Label(root, text="Input Path:")
+# opsetlabel = tk.Label(root, text="opset:")
+# bitlabel = tk.Label(root, text="bit")
+# input_entry = tk.Entry(root, textvariable=input_path)
+# input_button = tk.Button(root, text="Browse...", command=choose_input_file)
 
 
-convert_button = tk.Button(root, text="Convert", command=convert)
 
-# Add the widgets to the window
-input_label.grid(row=0, column=0)
-input_entry.grid(row=0, column=1)
-input_button.grid(row=0, column=2)
-
-bits.grid(row=2, column=0)
-bitlabel.grid(row=2, column=1)
-check_button3.grid(row=2, column=2)
-check_button4.grid(row=2, column=3)
-check_button5.grid(row=2, column=4)
-opsetlabel.grid(row=3, column=0)
-input_select.grid(row=3, column=1)
-
-convert_button.grid(row=3, column=2)
+# bits = tk.OptionMenu(root, mybits, 8, 16, 32)
+# check_button3 = tk.Checkbutton(root, text="External Data", variable=use_external_data)
+# check_button4 = tk.Checkbutton(root, text="Split External Data", variable=splitExternalData)
+# check_button5 = tk.Checkbutton(root, text="Float32 inputs/outputs", variable=fp32inout)
+# input_select = tk.OptionMenu(root, version, 15, 17, 18)
 
 
-# Start the main event loop
-root.mainloop()
+# convert_button = tk.Button(root, text="Convert", command=convert)
+
+# # Add the widgets to the window
+# input_label.grid(row=0, column=0)
+# input_entry.grid(row=0, column=1)
+# input_button.grid(row=0, column=2)
+
+# bits.grid(row=2, column=0)
+# bitlabel.grid(row=2, column=1)
+# check_button3.grid(row=2, column=2)
+# check_button4.grid(row=2, column=3)
+# check_button5.grid(row=2, column=4)
+# opsetlabel.grid(row=3, column=0)
+# input_select.grid(row=3, column=1)
+
+# convert_button.grid(row=3, column=2)
+
+
+# # Start the main event loop
+# root.mainloop()
