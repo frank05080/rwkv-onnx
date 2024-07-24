@@ -5,3 +5,4 @@ __pycache__
 *.ort
 *.config
 opset11_onnx
+test/*.onnx
