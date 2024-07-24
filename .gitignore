@@ -6,3 +6,4 @@ __pycache__
 *.config
 opset11_onnx
 test/*.onnx
+single_input_split/*.onnx
