@@ -16,9 +16,9 @@ input_data1 = np.array([200], dtype=np.int32)
 emptyState = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum)
 emptyState2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
 
-inputs = {}
 input_names = session1.get_inputs()
 input_names = [x.name for x in input_names]
+inputs = {}
 inputs[input_names[0]] = input_data1
 for i in range(len(input_names)-1):
     # print(input_names[i+1])
