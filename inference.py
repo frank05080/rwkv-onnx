@@ -20,9 +20,13 @@ input_names = session1.get_inputs()
 input_names = [x.name for x in input_names]
 inputs = {}
 inputs[input_names[0]] = input_data1
+print("1111111111", len(input_names))
+print(input_names)
 for i in range(len(input_names)-1):
     # print(input_names[i+1])
+    print("i is:", i)
     if "wkv" in input_names[i+1]:
+        print("i-emptyState.__len__():", i-emptyState.__len__())
         inputs[input_names[i+1]] = emptyState2[i-emptyState.__len__()] # statei2 has shape (24,16,64,64)
     else:
         # print(i, statei.__len__())
