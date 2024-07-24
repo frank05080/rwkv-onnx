@@ -52,7 +52,8 @@ def initONNXFile(path, model_version, useAllAvailableProviders=False):
             # get output names
             output_names = sess.get_outputs()
             output_names = [x.name for x in output_names]
-            # print(output_names)
+            # print("output_names:", output_names)
+            # print("len(output_names): ", len(output_names))
 
             # create input dict
             inputs[input_names[0]] = np.array([xi], dtype=np.int32)
@@ -127,7 +128,7 @@ for token in tqdm.tqdm(prompt[:-1]):
 print("Loaded prompt.")
 
 for i in range(1000):
-    logits, state, state2 = model.forward(prompt[-1],state, state2)
+    logits, state, state2 = model.forward(prompt[-1], state, state2)
     prompt = prompt+[npsample(logits)]
     print(tokenizer.decode(prompt[-1:]),end="", flush=True)
 print(tokenizer.decode(prompt))

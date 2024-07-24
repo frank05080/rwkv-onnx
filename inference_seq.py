@@ -29,9 +29,9 @@ for i in range(len(input_names1)-1):
         # print(i, statei.__len__())
         inputs1[input_names1[i+1]] = emptyState[i] # statei has shape [48, 1024]
 
-# Get input and output names for subgraph1
-input_name1 = session1.get_inputs()[0].name
-output_name1 = session1.get_outputs()[0].name
+# # Get input and output names for subgraph1
+# input_name1 = session1.get_inputs()[0].name
+# output_name1 = session1.get_outputs()[0].name
 
 output_names1 = session1.get_outputs()
 output_names1 = [x.name for x in output_names1]
