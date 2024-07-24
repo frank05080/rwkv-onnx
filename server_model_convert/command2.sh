@@ -1,0 +1,1 @@
+hb_mapper makertbin --config /home/users/guanzhong.chen/rwkv_v5/bpu_convert_yaml/rwkv_v5_submodel2_config.yaml --model-type onnx
