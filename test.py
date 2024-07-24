@@ -1,5 +1,5 @@
 
-def initONNXFile(path, useAllAvailableProviders=False):
+def initONNXFile(path, model_version, useAllAvailableProviders=False):
     import onnxruntime as rt
 
     # session execution provider options
@@ -29,6 +29,7 @@ def initONNXFile(path, useAllAvailableProviders=False):
     embed = int(path.split("_")[2].split(".")[0])
     layers = int(path.split("_")[1])
     typenum = sess.get_inputs()[1].type
+    print("type of typenum: ", type(typenum))
     print(typenum, embed, layers)
     import numpy as np
 
@@ -72,7 +73,10 @@ def initONNXFile(path, useAllAvailableProviders=False):
 
     # emptyState = []
     emptyState = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum)
-    emptyState2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
+    head_num = 0
+    if model_version == "0.4B":
+        head_num = 16
+    emptyState2 = np.array(([[[[0.01]*64]*64]*head_num])*layers, typenum) # revise 16
     print (emptyState.shape)
     print (emptyState2.shape)
 
@@ -110,7 +114,7 @@ import inquirer
 import os
 files = [f for f in os.listdir('.') if os.path.isfile(f)]
 files = [f for f in files if f.endswith(".onnx") or f.endswith(".ort")]
-model, state, state2 = initONNXFile(inquirer.list_input("Select model", choices=files)) 
+model, state, state2 = initONNXFile(inquirer.list_input("Select model", choices=files), "0.4B") 
 
 from tokenizer import world as tokenizer
 
