@@ -1,12 +1,15 @@
 import numpy as np
-import onnxruntime as ort
+# import onnxruntime as ort
+from horizon_tc_ui import HB_ONNXRuntime as ort
 from scipy.special import softmax
 
 class Model:
     
     def __init__(self, submodel1_path, submodel2_path) -> None:
-        self.session1 = ort.InferenceSession(submodel1_path)
-        self.session2 = ort.InferenceSession(submodel2_path)
+        # self.session1 = ort.InferenceSession(submodel1_path)
+        # self.session2 = ort.InferenceSession(submodel2_path)
+        self.session1 = ort(submodel1_path)
+        self.session2 = ort(submodel2_path)
         
     def forward(self, token, state, state2):
         input_names1 = self.session1.get_inputs()
@@ -94,8 +97,10 @@ typenum = np.float32
 state = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum)
 state2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
 
-submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel1.onnx"
-submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
+# submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel1.onnx"
+submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel1_quantized_model.onnx"
+# submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
+submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel2_quantized_model.onnx"
 model = Model(submodel1_path, submodel2_path)
 
 prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
