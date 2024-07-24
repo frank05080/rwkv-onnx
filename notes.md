@@ -1,1 +1,1 @@
-convert.py (may need to revise hard-coded head_num) -> test.py -> add_names.py -> split_onnx_with_initializer.py -> inference_seq.py -> inference.py
+convert.py (may need to revise hard-coded head_num) -> test.py -> add_names.py -> split_onnx_with_initializer.py -> inference_seq.py (-> inference.py) -> test_seq.py
