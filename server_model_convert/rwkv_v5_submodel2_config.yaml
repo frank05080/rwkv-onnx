@@ -38,6 +38,145 @@ model_parameters:
   # the directory in which model conversion results are stored
   working_dir: './model_convert_output'
 
+  node_info: {
+    "/Add_1049": {
+      'ON': 'CPU',
+    },
+    "/Div_1050_mul": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1051": {
+      'ON': 'CPU',
+    },
+    "/ReduceMean_1052": {
+      'ON': 'CPU',
+    },
+    "/Sub_1053": {
+      'ON': 'CPU',
+    },
+    "/Mul_1054": {
+      'ON': 'CPU',
+    },
+    "/ReduceMean_1055": {
+      'ON': 'CPU',
+    },
+    "/Add_1056": {
+      'ON': 'CPU',
+    },
+    "/Sqrt_1057": {
+      'ON': 'CPU',
+    },
+    "/Add_1058": {
+      'ON': 'CPU',
+    },
+    "/Div_1059_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1059_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1060": {
+      'ON': 'CPU',
+    },
+    "/Add_1061": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1062": {
+      'ON': 'CPU',
+    },
+    "/Mul_1063": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1064_reshape_in": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1064_gemm": {
+      'ON': 'CPU',
+    },
+
+    "/Div_1136_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1136_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1137": {
+      'ON': 'CPU',
+    },
+    "/Add_1138": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1139": {
+      'ON': 'CPU',
+    },
+    "/Mul_1140": {
+      'ON': 'CPU',
+    },
+
+    "/ReduceMean_1206": {
+      'ON': 'CPU',
+    },
+
+    "/Div_1213_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1213_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1214": {
+      'ON': 'CPU',
+    },
+    "/Add_1215": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1216": {
+      'ON': 'CPU',
+    },
+    "/Mul_1217": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1218_reshape_in": {
+      'ON': 'CPU',
+    },
+
+    "/ReduceMean_1283": {
+      'ON': 'CPU',
+    },
+
+    "/Reshape_1359": {
+      'ON': 'CPU',
+    },
+    "/ReduceMean_1360": {
+      'ON': 'CPU',
+    },
+    "/Sub_1361": {
+      'ON': 'CPU',
+    },
+    "/Mul_1362": {
+      'ON': 'CPU',
+    },
+
+    "/ReduceMean_1437": {
+      'ON': 'CPU',
+    },
+
+    "/Div_1444_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1444_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1445": {
+      'ON': 'CPU',
+    },
+    "/Add_1446": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1447": {
+      'ON': 'CPU',
+    },
+  }
+
 # 模型输入相关参数, 若输入多个节点, 则应使用';'进行分隔, 使用默认缺省设置则写None
 # ---------------------------------------------------------------------------------
 # model input related parameters,

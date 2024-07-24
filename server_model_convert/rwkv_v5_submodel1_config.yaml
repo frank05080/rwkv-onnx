@@ -38,6 +38,60 @@ model_parameters:
   # the directory in which model conversion results are stored
   working_dir: './model_convert_output'
 
+  node_info: {
+    "/Div_1444_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1444_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1445": {
+      'ON': 'CPU',
+    },
+    "/Add_1446": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1447": {
+      'ON': 'CPU',
+    },
+
+    "/Div_1752_reciprocal": {
+      'ON': 'CPU',
+    },
+    "/Div_1752_mul": {
+      'ON': 'CPU',
+    },
+    "/Mul_1753": {
+      'ON': 'CPU',
+    },
+    "/Add_1754": {
+      'ON': 'CPU',
+    },
+    "/Reshape_1755": {
+      'ON': 'CPU',
+    },
+
+
+    "/MatMul_1002_gemm": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1007_gemm": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1026_gemm": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1030_gemm": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1034_gemm": {
+      'ON': 'CPU',
+    },
+    "/MatMul_1038_gemm": {
+      'ON': 'CPU',
+    },
+  }
+
 # 模型输入相关参数, 若输入多个节点, 则应使用';'进行分隔, 使用默认缺省设置则写None
 # ---------------------------------------------------------------------------------
 # model input related parameters,
