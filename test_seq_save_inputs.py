@@ -6,7 +6,11 @@ import os
 input_folder_name = 'dumped_inputs_submodel1'
 if not os.path.exists(input_folder_name):
     os.makedirs(input_folder_name)
-index = 0
+input_folder_name2 = 'dumped_inputs_submodel2'
+if not os.path.exists(input_folder_name2):
+    os.makedirs(input_folder_name2)
+index1 = 0
+index2 = 0
 SAVE_INPUT = True
 
 class Model:
@@ -31,12 +35,12 @@ class Model:
 
         # Save each numpy array in inputs1 as a .bin file
         if SAVE_INPUT:
-            global index
+            global index1
             for name, array in inputs1.items():
                 type_folder = os.path.join(input_folder_name, name)
                 os.makedirs(type_folder, exist_ok=True)
-                file_path = os.path.join(type_folder, f"{name + str(index)}.bin")
-                index += 1
+                file_path = os.path.join(type_folder, f"{name + str(index1)}.bin")
+                index1 += 1
                 array.tofile(file_path)
 
         output_names1 = self.session1.get_outputs()
@@ -61,6 +65,15 @@ class Model:
                 inputs2[input_names2[i+2]] = state2[i-10]
             else:
                 inputs2[input_names2[i+2]] = state[i+25]
+                
+        if SAVE_INPUT:
+            global index2
+            for name, array in inputs2.items():
+                type_folder = os.path.join(input_folder_name2, name)
+                os.makedirs(type_folder, exist_ok=True)
+                file_path = os.path.join(type_folder, f"{name + str(index2)}.bin")
+                index2 += 1
+                array.tofile(file_path)
 
         output_names2 = self.session2.get_outputs()
         output_names2 = [x.name for x in output_names2]
