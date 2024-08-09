@@ -99,11 +99,12 @@ state2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
 
 # submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel1.onnx"
 submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel1_quantized_model.onnx"
-# submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
-submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel2_quantized_model.onnx"
+submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
+# submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel2_quantized_model.onnx"
 model = Model(submodel1_path, submodel2_path)
 
-prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
+# prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
+prompt = tokenizer.encode("who are you")
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
     logits, state, state2 = model.forward(token, state, state2)
