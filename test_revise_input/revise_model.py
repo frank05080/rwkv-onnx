@@ -4,79 +4,83 @@ import onnx.helper as helper
 model_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/test_revise_input/initial_model.onnx"
 model = onnx.load(model_path)
 
-graph = model.graph
-# for output in graph.output:
-#     print(output.name)
-nodes = list(graph.node)
-print(nodes)
+# # Update the opset version to 11
+# model.opset_import[0].version = 11
 
+graph = model.graph
+nodes = list(graph.node)
+
+## Find the input and then remove it
 old_input_name = 'input1'
-# Find the old input and remove it
 for i, input in enumerate(graph.input):
     if input.name == old_input_name:
         del graph.input[i]
         break
-print(graph.input)
 
-new_input_name = 'input0' # should not be equal to the old input name
+new_input_name = 'input0'  # should not be equal to the old input name
 new_input = helper.make_tensor_value_info(new_input_name, onnx.TensorProto.FLOAT, [1, 1])
 
-# # Add a squeeze layer to transform [1, 1] into [1]
-# squeeze_output_name = 'squeezed_output'
-# squeeze_node = helper.make_node(
-#     'Squeeze',
-#     inputs=[new_input_name],
-#     outputs=[squeeze_output_name],
-#     name='Squeeze_New_Input',
-#     # axes=[0]
-# )
-# graph.node.append(squeeze_node)
-# # Update the rest of the graph to use the new squeezed output instead of the old input
-# for node in graph.node:
-#     for i, input_name in enumerate(node.input): # 遍历所有节点的input name
-#         if input_name == old_input_name: 
-#             node.input[i] = squeeze_output_name
-
-
-# Add a reshape layer to transform [1, 1] into [1]
-reshape_shape_name = 'reshape_shape'
+# Instead of a tensor, create a constant node for the reshape shape
 reshape_shape = helper.make_tensor(
-    reshape_shape_name, onnx.TensorProto.INT64, [1], [1]
+    name='reshape_shape_const',
+    data_type=onnx.TensorProto.INT64,
+    dims=[1],
+    vals=[1]
 )
-reshape_output_name = 'reshaped_output'
+reshape_shape_node = helper.make_node(
+    'Constant',
+    inputs=[],
+    outputs=['reshape_shape'],
+    value=reshape_shape
+)
+
+reshape_output_name = '/Reshaped_Output'
 reshape_node = helper.make_node(
     'Reshape',
-    inputs=[new_input_name, reshape_shape_name],
+    inputs=[new_input_name, 'reshape_shape'],
     outputs=[reshape_output_name],
     name='Reshape_New_Input'
 )
-graph.node.append(reshape_node)
 
-# Update the rest of the graph to use the new squeezed output instead of the old input
-for node in graph.node:
-    for i, input_name in enumerate(node.input):  # Traverse all nodes' input names
-        if input_name == old_input_name: 
+# Ensure the reshape nodes are added before any other node that uses its output
+new_nodes = [reshape_shape_node, reshape_node] # reshape node appears before other nodes
+
+# Update the rest of the graph to use the new reshaped output instead of the old input
+for node in nodes:
+    for i, input_name in enumerate(node.input):
+        if input_name == old_input_name:
             node.input[i] = reshape_output_name
+    new_nodes.append(node)  # Add nodes in correct order
 
+# Replace the existing nodes with the new sorted nodes ## First clear graph.node field then fill in 
+graph.ClearField('node') # can not use graph.node.clear() since 'google.protobuf.pyext._message.RepeatedCompositeCo' object has no attribute 'clear'
+graph.node.extend(new_nodes)
 
 # Add the new input to the graph
-graph.input.extend([new_input])
-graph.initializer.extend([reshape_shape])
+# graph.input.extend([new_input]) 
+graph.input.insert(0, new_input) # insert into the first position to maintain the input order
 
 new_model = helper.make_model(graph)
+
+# change opset 17 to opset 11
+for opset in new_model.opset_import:
+    print(f"Domain: {opset.domain}, Version: {opset.version}")
+    if opset.domain == '' or opset.domain == 'ai.onnx':
+        opset.version = 11  # Change to 10 if needed
+        print(f"Domain: {opset.domain}, Version: {opset.version}")
+
+# Save the modified model
 onnx.save(new_model, "/home/ros/share_dir/gitrepos/rwkv-onnx/test_revise_input/revised_graph.onnx")
 
-### Modify the input shape
-# for input in graph.input:
-#     if input.name == 'input1':
-#         """
-#         tensor_type {
-#             elem_type: 1
-#             shape {
-#                 dim {
-#                     dim_value: 1
-#                 }
-#             }
-#         }
-#         """
-#         input.type.tensor_type.shape.dim[0].dim_value = 1
+# Load the modified model to perform the check
+try:
+    onnx_model = onnx.load("/home/ros/share_dir/gitrepos/rwkv-onnx/test_revise_input/revised_graph.onnx")
+    onnx.checker.check_model(onnx_model)
+    
+    for opset in new_model.opset_import:
+        print(f"Domain: {opset.domain}, Version: {opset.version}")
+    
+    # onnx.save(new_model, "/home/ros/share_dir/gitrepos/rwkv_v4/data/v4/pt2onnx_models/revised_input_body.onnx")
+    # print("Model checked successfully")
+except Exception as e:
+    print(f"Model check failed: {e}")
