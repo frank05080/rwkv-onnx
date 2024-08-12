@@ -3,7 +3,7 @@ import numpy as np
 
 import bpu_infer_lib
 
-inf = bpu_infer_lib.Infer(True)
+inf = bpu_infer_lib.Infer(False)
 inf.load_model("/root/rwkv_v5/rwkv_v5_submodel1.bin")
 
 input_index = 0
@@ -39,7 +39,44 @@ for i in range(12):
     input_index += 1
 
 print("before infer")
-inf.forward()
+inf.forward(True)
+print("finish infer")
+
+
+input_index = 0
+
+instate_0 = torch.rand((1024))
+instate_0 = instate_0.numpy().astype(np.float32)
+ret = inf.read_numpy_arr_float32(instate_0, input_index)
+input_index += 1
+
+input0 = np.array([1]).astype(np.int32)
+ret = inf.read_numpy_arr_int32(input0, input_index)
+input_index += 1
+
+wkv0 = torch.rand((16,64,64))
+wkv0 = wkv0.numpy().astype(np.float32)
+ret = inf.read_numpy_arr_float32(wkv0, input_index)
+input_index += 1
+
+for i in range(12):
+    instate_0 = torch.rand((1024))
+    instate_0 = instate_0.numpy().astype(np.float32)
+    ret = inf.read_numpy_arr_float32(instate_0, input_index)
+    input_index += 1
+    
+    instate_0 = torch.rand((1024))
+    instate_0 = instate_0.numpy().astype(np.float32)
+    ret = inf.read_numpy_arr_float32(instate_0, input_index)
+    input_index += 1
+
+    wkv0 = torch.rand((16,64,64))
+    wkv0 = wkv0.numpy().astype(np.float32)
+    ret = inf.read_numpy_arr_float32(wkv0, input_index)
+    input_index += 1
+
+print("before infer")
+inf.forward(False)
 print("finish infer")
 
 # #input = np.random.rand(1024).astype(np.float32)

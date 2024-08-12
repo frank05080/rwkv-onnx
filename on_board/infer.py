@@ -8,6 +8,7 @@ import bpu_infer_lib
 class Model:
     def __init__(self, submodel1_path, submodel2_path) -> None:
         self.inf = bpu_infer_lib.Infer(False)
+        print("1111111111111ready to load model")
         self.inf.load_model(submodel1_path)
         self.session2 = ort.InferenceSession(submodel2_path)
         
@@ -45,7 +46,7 @@ class Model:
         print("state2_index: ", state2_index)
         
         print("start forward")
-        self.inf.forward()
+        self.inf.forward(True)
         print("end forward")
         
         # res = self.inf.get_infer_res_np_float32(0, 1024)
