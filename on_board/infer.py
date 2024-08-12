@@ -1,44 +1,64 @@
 import numpy as np
-# import onnxruntime as ort
-from horizon_tc_ui import HB_ONNXRuntime as ort
 from scipy.special import softmax
+import onnxruntime as ort
+
+import bpu_infer_lib
+
 
 class Model:
-    
     def __init__(self, submodel1_path, submodel2_path) -> None:
-        # self.session1 = ort.InferenceSession(submodel1_path)
-        # self.session2 = ort.InferenceSession(submodel2_path)
-        self.session1 = ort(submodel1_path)
-        self.session2 = ort(submodel2_path)
+        self.inf = bpu_infer_lib.Infer(False)
+        self.inf.load_model(submodel1_path)
+        self.session2 = ort.InferenceSession(submodel2_path)
         
-    def forward(self, token, state, state2): # state/state2 first is a numpy array, then is a list of np array
-        input_names1 = self.session1.get_inputs()
-        input_names1 = [x.name for x in input_names1]
+    def forward(self, token, state, state2):
         
-        inputs1 = {}
-        input_data1 = np.array([token], dtype=np.int32)
-        inputs1[input_names1[0]] = input_data1
+        # self.inf = bpu_infer_lib.Infer(False)
+        # self.inf.load_model(submodel1_path)
         
-        for i in range(len(input_names1)-1):
-            if "wkv" in input_names1[i+1]:
-                inputs1[input_names1[i+1]] = state2[i-25] # statei2 has shape (24,16,64,64)
-            else:
-                inputs1[input_names1[i+1]] = state[i] # statei has shape [48, 1024]
-
-        output_names1 = self.session1.get_outputs()
-        output_names1 = [x.name for x in output_names1]
-        # Run inference on subgraph1
-        results1 = self.session1.run(
-            output_names1,
-            inputs1
-        )
-        # print(output_names1)
-        subgraph1_out1 = results1[0]
-        subgraph1_out2 = results1[1]
-        subgraph1_state = results1[2:27]
-        subgraph1_state2 = results1[-13:]
+        input_index = 0
+        state_index = 0
+        state2_index = 0
+        input_data = np.array([token], dtype=np.int32)
         
-        # # ---------- Load the subgraph2 model ------------
+        ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+        input_index += 1
+        state_index += 1
+        ret = self.inf.read_numpy_arr_int32(input_data, input_index)
+        input_index += 1
+        ret = self.inf.read_numpy_arr_float32(state2[state2_index], input_index)
+        input_index += 1
+        state2_index += 1
+        
+        for _ in range(12):
+            ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+            input_index += 1
+            state_index += 1
+            ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+            input_index += 1
+            state_index += 1
+            ret = self.inf.read_numpy_arr_float32(state2[state2_index], input_index) # 如果这里改为state[state2_index]则shape会不同，此时结果不对，但不会报错！！！
+            input_index += 1
+            state2_index += 1
+        print("input_index: ", input_index)
+        print("state_index: ", state_index)
+        print("state2_index: ", state2_index)
+        
+        print("start forward")
+        self.inf.forward()
+        print("end forward")
+        
+        # res = self.inf.get_infer_res_np_float32(0, 1024)
+        # print("res:", res)
+        
+        subgraph1_out1 = self.inf.get_infer_res_np_float32(0, 1024)
+        subgraph1_out2 = self.inf.get_infer_res_np_float32(1, 1024)
+        subgraph1_state = [self.inf.get_infer_res_np_float32(i, 1024) for i in range(2,27)]
+        subgraph1_state2 = [self.inf.get_infer_res_np_float32(i, 1024) for i in range(27,40)]
+        
+        # del (self.inf)
+                
+        # ---------- Load the subgraph2 model ------------
         input_names2 = self.session2.get_inputs()
         input_names2 = [x.name for x in input_names2]
         inputs2 = {}
@@ -94,17 +114,16 @@ from tokenizer import world as tokenizer
 embed = 1024
 layers = 24
 typenum = np.float32
-state = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum)
-state2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16
+state = np.array(([[0.01]*embed, [0.01]*embed])*layers, typenum) # [48, 1024]
+state2 = np.array(([[[[0.01]*64]*64]*16])*layers, typenum) # revise 16 # [24, 16, 64, 64]
 
-# submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel1.onnx"
-submodel1_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel1_quantized_model.onnx"
-submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
-# submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/rwkv_v5_submodel2_quantized_model.onnx"
+submodel1_path = "/root/rwkv_v5/rwkv_v5_submodel1.bin"
+submodel2_path = "/root/rwkv_v5/submodel2.onnx"
 model = Model(submodel1_path, submodel2_path)
 
 # prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
 prompt = tokenizer.encode("###Question\n 麦当劳是啥 ###Answer\n")
+
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
     logits, state, state2 = model.forward(token, state, state2)
