@@ -104,7 +104,7 @@ submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
 model = Model(submodel1_path, submodel2_path)
 
 # prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
-prompt = tokenizer.encode("###Question\n 解释黑洞 ###Answer\n")
+prompt = tokenizer.encode("###Question\n 我想听一个故事 ###Answer\n")
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
     logits, state, state2 = model.forward(token, state, state2)
