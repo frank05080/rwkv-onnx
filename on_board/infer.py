@@ -55,7 +55,7 @@ class Model:
         subgraph1_out1 = self.inf.get_infer_res_np_float32(0, 1024)
         subgraph1_out2 = self.inf.get_infer_res_np_float32(1, 1024)
         subgraph1_state = [self.inf.get_infer_res_np_float32(i, 1024) for i in range(2,27)]
-        subgraph1_state2 = [self.inf.get_infer_res_np_float32(i, 1024) for i in range(27,40)]
+        subgraph1_state2 = [self.inf.get_infer_res_np_float32(i, 65536).reshape(16,64,64) for i in range(27,40)]
         
         # del (self.inf)
                 
@@ -123,7 +123,7 @@ submodel2_path = "/root/rwkv_v5/submodel2.onnx"
 model = Model(submodel1_path, submodel2_path)
 
 # prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
-prompt = tokenizer.encode("###Question\n 麦当劳是啥 ###Answer\n")
+prompt = tokenizer.encode("###Question\n 解释黑洞 ###Answer\n")
 
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
