@@ -41,13 +41,13 @@ class Model:
             ret = self.inf.read_numpy_arr_float32(state2[state2_index], input_index) # 如果这里改为state[state2_index]则shape会不同，此时结果不对，但不会报错！！！
             input_index += 1
             state2_index += 1
-        print("input_index: ", input_index)
-        print("state_index: ", state_index)
-        print("state2_index: ", state2_index)
+        #print("input_index: ", input_index)
+        #print("state_index: ", state_index)
+        #print("state2_index: ", state2_index)
         
-        print("start forward")
+        #print("start forward")
         self.inf.forward(True)
-        print("end forward")
+        #print("end forward")
         
         # res = self.inf.get_infer_res_np_float32(0, 1024)
         # print("res:", res)
