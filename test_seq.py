@@ -3,16 +3,28 @@ import numpy as np
 from horizon_tc_ui import HB_ONNXRuntime as ort
 from scipy.special import softmax
 
+import os
+input_folder_name = 'dumped_inputs_submodel1_bak'
+if not os.path.exists(input_folder_name):
+    os.makedirs(input_folder_name)
+index1 = 0
+SAVE_INPUT = True
+
 class Model:
     
     def __init__(self, submodel1_path, submodel2_path) -> None:
         # self.session1 = ort.InferenceSession(submodel1_path)
         # self.session2 = ort.InferenceSession(submodel2_path)
+        print("start loading submodel1..")
         self.session1 = ort(submodel1_path)
+        print("start loading submodel2..")
         self.session2 = ort(submodel2_path)
+        print("finish loading all models")
         
     def forward(self, token, state, state2): # state/state2 first is a numpy array, then is a list of np array
-        input_names1 = self.session1.get_inputs()
+        print("token is:", token)
+        
+        input_names1 = self.session1.get_inputs() # [name.name for name in input_names1]
         input_names1 = [x.name for x in input_names1]
         
         inputs1 = {}
@@ -24,6 +36,15 @@ class Model:
                 inputs1[input_names1[i+1]] = state2[i-25] # statei2 has shape (24,16,64,64)
             else:
                 inputs1[input_names1[i+1]] = state[i] # statei has shape [48, 1024]
+                
+        if SAVE_INPUT:
+            global index1
+            for name, array in inputs1.items():
+                type_folder = os.path.join(input_folder_name, name)
+                os.makedirs(type_folder, exist_ok=True)
+                file_path = os.path.join(type_folder, f"{name + str(index1)}.bin")
+                index1 += 1
+                array.tofile(file_path)
 
         output_names1 = self.session1.get_outputs()
         output_names1 = [x.name for x in output_names1]
@@ -34,7 +55,9 @@ class Model:
         )
         # print(output_names1)
         subgraph1_out1 = results1[0]
+        print("subgraph1_out1:", subgraph1_out1[:10])
         subgraph1_out2 = results1[1]
+        print("subgraph1_out2:", subgraph1_out2[:10])
         subgraph1_state = results1[2:27]
         subgraph1_state2 = results1[-13:]
         
@@ -65,7 +88,9 @@ class Model:
         return results2[0], subgraph1_state + subgraph2_state, subgraph1_state2 + subgraph2_state2
 
 
-def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
+def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8, seed: int = None) -> int:
+    if seed is not None:
+        np.random.seed(seed)
     try:
         ozut = ozut.numpy()
     except:
@@ -87,6 +112,7 @@ def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
         probs = pow(probs, 1.0 / temp)
     probs = probs / np.sum(probs, axis=0)
     mout = np.random.choice(a=len(probs), p=probs)
+    print("mout is:", mout)
     return mout
 
 from tokenizer import world as tokenizer
@@ -104,14 +130,21 @@ submodel2_path = "/home/ros/share_dir/gitrepos/rwkv-onnx/submodel2.onnx"
 model = Model(submodel1_path, submodel2_path)
 
 # prompt = tokenizer.encode("### Instruction:\n晚上吃什么###Result\n")
-prompt = tokenizer.encode("###Question\n 我想听一个故事 ###Answer\n")
+# prompt = tokenizer.encode("###Question\n 我想听一个故事 ###Answer\n")
+prompt = tokenizer.encode("你好")
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
     logits, state, state2 = model.forward(token, state, state2)
+    print("logits[:10]:", logits[:10])
+    print("state[0][:10]: ", state[0][:10])
+    print("state2[0][:10]: ", state2[0][0][0][:10])
 print("Loaded prompt.")
 
 for i in range(1000):
     logits, state, state2 = model.forward(prompt[-1], state, state2)
-    prompt = prompt+[npsample(logits)]
+    print("logits[:10]:", logits[:10])
+    print("state[0][:10]: ", state[0][:10])
+    print("state2[0][:10]: ", state2[0][0][0][:10])
+    prompt = prompt+[npsample(logits, seed=42)]
     print(tokenizer.decode(prompt[-1:]),end="", flush=True)
 print(tokenizer.decode(prompt))
