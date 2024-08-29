@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(11)
 from scipy.special import softmax
 import onnxruntime as ort
 
@@ -20,25 +21,30 @@ class Model:
         input_index = 0
         state_index = 0
         state2_index = 0
+        #print("token is:", token)
         input_data = np.array([token], dtype=np.int32)
         
-        ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+        ret = self.inf.read_input(state[state_index], input_index)
+        #print("1:", state[state_index])
+        #print(type(state[state_index]))
         input_index += 1
         state_index += 1
-        ret = self.inf.read_numpy_arr_int32(input_data, input_index)
+        ret = self.inf.read_input(input_data, input_index)
         input_index += 1
-        ret = self.inf.read_numpy_arr_float32(state2[state2_index], input_index)
+        ret = self.inf.read_input(state2[state2_index], input_index)
+        #print("2:", state2[state2_index])
+        #print(type(state2[state2_index]))
         input_index += 1
         state2_index += 1
         
         for _ in range(12):
-            ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+            ret = self.inf.read_input(state[state_index], input_index)
             input_index += 1
             state_index += 1
-            ret = self.inf.read_numpy_arr_float32(state[state_index], input_index)
+            ret = self.inf.read_input(state[state_index], input_index)
             input_index += 1
             state_index += 1
-            ret = self.inf.read_numpy_arr_float32(state2[state2_index], input_index) # 如果这里改为state[state2_index]则shape会不同，此时结果不对，但不会报错！！！
+            ret = self.inf.read_input(state2[state2_index], input_index) # 如果这里改为state[state2_index]则shape会不同，此时结果不对，但不会报错！！！
             input_index += 1
             state2_index += 1
         #print("input_index: ", input_index)
@@ -52,10 +58,18 @@ class Model:
         # res = self.inf.get_infer_res_np_float32(0, 1024)
         # print("res:", res)
         
-        subgraph1_out1 = self.inf.get_infer_res_np_float32(0, 1024)
-        subgraph1_out2 = self.inf.get_infer_res_np_float32(1, 1024)
-        subgraph1_state = [self.inf.get_infer_res_np_float32(j, 1024) for j in range(2,27)]
-        subgraph1_state2 = [self.inf.get_infer_res_np_float32(k, 65536).reshape(16,64,64) for k in range(27,40)]
+        self.inf.get_output()
+        subgraph1_out1 = self.inf.outputs[0].data.reshape(1024)
+        #print("subgraph1_out1:", subgraph1_out1[:10])
+        subgraph1_out2 = self.inf.outputs[1].data.reshape(1024)
+        #print("subgraph1_out2:", subgraph1_out2[:10])
+        subgraph1_state = [self.inf.outputs[j].data.reshape(1024) for j in range(2,27)]
+        subgraph1_state2 = [self.inf.outputs[k].data.reshape(16,64,64) for k in range(27,40)]
+        
+        # subgraph1_out1 = self.inf.get_infer_res_np_float32(0, 1024)
+        # subgraph1_out2 = self.inf.get_infer_res_np_float32(1, 1024)
+        # subgraph1_state = [self.inf.get_infer_res_np_float32(j, 1024) for j in range(2,27)]
+        # subgraph1_state2 = [self.inf.get_infer_res_np_float32(k, 65536).reshape(16,64,64) for k in range(27,40)]
         
         # del (self.inf)
                 
@@ -86,7 +100,7 @@ class Model:
         return results2[0], subgraph1_state + subgraph2_state, subgraph1_state2 + subgraph2_state2
 
 
-def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
+def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.7) -> int:
     try:
         ozut = ozut.numpy()
     except:
@@ -108,6 +122,10 @@ def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
         probs = pow(probs, 1.0 / temp)
     probs = probs / np.sum(probs, axis=0)
     mout = np.random.choice(a=len(probs), p=probs)
+    #mout = np.argmax(probs)
+    #sorted_indices = np.argsort(probs)
+    #mout = sorted_indices[-2]
+    #print("mout is:", mout)
     return mout
 
 from tokenizer import world as tokenizer
@@ -122,17 +140,33 @@ submodel1_path = "/root/rwkv_v5/rwkv_v5_submodel1.bin"
 submodel2_path = "/root/rwkv_v5/submodel2.onnx"
 model = Model(submodel1_path, submodel2_path)
 
-# prompt = tokenizer.encode("### Instruction:\n请问你是谁###Result\n")
-# prompt = tokenizer.encode("请介绍黑洞：")
-prompt = tokenizer.encode("###Question\n 解释黑洞 ###Answer\n")
+#prompt = tokenizer.encode("### Question:请介绍黑洞。\n### Answer: ")
+prompt = tokenizer.encode("### Question:谈谈数学。\n### Answer: ")
+#prompt = tokenizer.encode("请介绍黑洞：")
+# prompt = tokenizer.encode("我想听一个故事。")
+#prompt = tokenizer.encode("你好")
 
 import tqdm
 for token in tqdm.tqdm(prompt[:-1]):
     logits, state, state2 = model.forward(token, state, state2)
+    # print("logits[:10]:", logits[:10])
+    # print("type of state:", type(state))
+    # print("len of state:", len(state))
+    # print("state[0][:10]: ", state[0][:10])
+    # print("type of state2:", type(state2))
+    # print("len of state2:", len(state2))
+    # print("state2[0][:10]: ", state2[0][0][0][:10])
 print("Loaded prompt.")
 
 for i in range(1000):
     logits, state, state2 = model.forward(prompt[-1], state, state2)
+    # print("logits[:10]:", logits[:10])
+    # print("type of state:", type(state))
+    # print("len of state:", len(state))
+    # print("state[0][:10]: ", state[0][:10])
+    # print("type of state2:", type(state2))
+    # print("len of state2:", len(state2))
+    # print("state2[0][:10]: ", state2[0][0][0][:10])
     prompt = prompt+[npsample(logits)]
     print(tokenizer.decode(prompt[-1:]),end="", flush=True)
 print(tokenizer.decode(prompt))
