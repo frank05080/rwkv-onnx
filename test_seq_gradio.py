@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import onnxruntime as ort
 # from horizon_tc_ui import HB_ONNXRuntime as ort
@@ -161,6 +163,11 @@ def stream(message, history):
         logits, state, state2 = model.forward(prompt[-1], state, state2)
         prompt = prompt+[npsample(logits)]
         res = res + tokenizer.decode(prompt[-1:])
+        time.sleep(0.8)
         yield res
         
-gr.ChatInterface(stream).launch()
+with gr.Blocks() as demo:
+    gr.Markdown("<h1 style='text-align: center;'>RWKV-V5 RDK X5 Chat Interface</h1>")  # 添加居中的标题
+    chat = gr.ChatInterface(stream)
+
+demo.launch()
