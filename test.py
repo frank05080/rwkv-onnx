@@ -1,3 +1,7 @@
+SAVE_INPUT = True
+INPUT_FOLDER_NAME = "dumped_inputs"
+INPUT_INDEX = 0
+
 
 def initONNXFile(path, model_version, useAllAvailableProviders=False):
     import onnxruntime as rt
@@ -23,7 +27,6 @@ def initONNXFile(path, model_version, useAllAvailableProviders=False):
         path, sess_options, providers=providers)
 
     ins = {
-
     }
 
     embed = int(path.split("_")[2].split(".")[0])
@@ -39,7 +42,6 @@ def initONNXFile(path, model_version, useAllAvailableProviders=False):
         typenum = np.float16
 
     class InterOp():
-
         RnnOnly = True
 
         def forward(selff, xi, statei, statei2):
@@ -64,6 +66,21 @@ def initONNXFile(path, model_version, useAllAvailableProviders=False):
                 else:
                     # print(i, statei.__len__())
                     inputs[input_names[i+1]] = statei[i] # statei has shape [48, 1024]
+                    
+            if SAVE_INPUT:
+                import os
+                if not os.path.exists(INPUT_FOLDER_NAME):
+                    os.makedirs(INPUT_FOLDER_NAME)
+                global INPUT_INDEX
+                for name, array in inputs.items():
+                    type_folder = os.path.join(INPUT_FOLDER_NAME, name)
+                    os.makedirs(type_folder, exist_ok=True)
+                    print(type_folder)
+                    file_path = os.path.join(type_folder, f"{str(INPUT_INDEX)}.bin")
+                    print(INPUT_INDEX)
+                    print(file_path)
+                    INPUT_INDEX += 1
+                    array.tofile(file_path)
 
             outputs = sess.run(output_names, inputs)
             # print(outputs[1][23])
@@ -82,6 +99,7 @@ def initONNXFile(path, model_version, useAllAvailableProviders=False):
     print (emptyState2.shape)
 
     return model, emptyState, emptyState2
+
 
 def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
     import numpy as np
@@ -110,25 +128,31 @@ def npsample(ozut, temp: float = 1.0, top_p_usual: float = 0.8) -> int:
     mout = np.random.choice(a=len(probs), p=probs)
     return mout
 
-import inquirer
-# get all .onnx files in current directory
-import os
-files = [f for f in os.listdir('.') if os.path.isfile(f)]
-files = [f for f in files if f.endswith(".onnx") or f.endswith(".ort")]
-model, state, state2 = initONNXFile(inquirer.list_input("Select model", choices=files), "0.4B") 
 
-from tokenizer import world as tokenizer
+def main():
+    import inquirer
+    # get all .onnx files in current directory
+    import os
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    files = [f for f in files if f.endswith(".onnx") or f.endswith(".ort")]
+    model, state, state2 = initONNXFile(inquirer.list_input("Select model", choices=files), "0.4B") 
 
-# prompt = tokenizer.encode("### Instruction:\nPlease write a short story of a man defeating a two headed dragon###Result\n")
-prompt = tokenizer.encode("### Instruction:\n什么是黑洞###Result\n")
-import tqdm
-for token in tqdm.tqdm(prompt[:-1]):
-    logits, state, state2 = model.forward(token, state, state2)
+    from tokenizer import world as tokenizer
 
-print("Loaded prompt.")
+    # prompt = tokenizer.encode("### Instruction:\nPlease write a short story of a man defeating a two headed dragon###Result\n")
+    prompt = tokenizer.encode("### Instruction:\n请解释黑洞###Result\n")
+    import tqdm
+    for token in tqdm.tqdm(prompt[:-1]):
+        logits, state, state2 = model.forward(token, state, state2)
 
-for i in range(1000):
-    logits, state, state2 = model.forward(prompt[-1], state, state2)
-    prompt = prompt+[npsample(logits)]
-    print(tokenizer.decode(prompt[-1:]),end="", flush=True)
-print(tokenizer.decode(prompt))
+    print("Loaded prompt.")
+
+    for i in range(100):
+        logits, state, state2 = model.forward(prompt[-1], state, state2)
+        prompt = prompt+[npsample(logits)]
+        print(tokenizer.decode(prompt[-1:]),end="", flush=True)
+    print(tokenizer.decode(prompt))
+
+
+if __name__ == "__main__":
+    main()

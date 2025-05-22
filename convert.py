@@ -1,5 +1,12 @@
 
+"""
+Generate RWKV onnx in the current folder
+"""
+
+import torch
 import opslist
+
+PTH_PATH = "C:\\Users\\guanzhong.chen\\Documents\\virtualbox_share\\gitrepos\\rwkv-onnx\\opset11_onnx\\RWKV-5-World-0.4B-v2-20231113-ctx4096.pth"
 
 def RnnRWKV(ops:opslist.RWKVOnnxOps, *args):
     class myRWKV(ops.module):
@@ -185,16 +192,12 @@ def RnnRWKV(ops:opslist.RWKVOnnxOps, *args):
                                                             self.postprocess1))
 
             return ops.convertToFloat32(x), ot, ot2
-
-
+    
     ops.postProcessModule(myRWKV(*args))
     
 
-
-import torch
-
 def convert_model(path, dtype):
-    #delete all .onnx and .bin files
+    # delete all .onnx and .bin files
     import os
     for file in os.listdir("."):
         if file.endswith(".onnx") or file.endswith(".bin"):
@@ -205,8 +208,7 @@ def convert_model(path, dtype):
     layers = len(
         list(filter(lambda x: "blocks" in x and "ln1.bias" in x, w.keys())))
 
-
-    ops = opslist.RWKVOnnxOps(layers, dims, dtype=dtype, opsVersion=11, externalData=False, splitExternalData=False, fp32inout=False, quantized=False, heads=headsnume)
+    ops = opslist.RWKVOnnxOps(layers, dims, dtype=dtype, opsVersion=19, externalData=False, splitExternalData=False, fp32inout=False, quantized=False, heads=headsnume)
 
     RnnRWKV(ops,w)
 
@@ -227,9 +229,9 @@ def convert_model(path, dtype):
 import numpy as np
 def convert():
     # dtype = np.float16 if mybits.get()==16 else np.float32
-    # dtype = np.float32 # revise
-    dtype = np.float16
-    convert_model("/home/ros/share_dir/gitrepos/rwkv-onnx/opset11_onnx/RWKV-5-World-0.4B-v2-20231113-ctx4096.pth", dtype)
+    dtype = np.float32 # revise
+    # dtype = np.float16
+    convert_model(PTH_PATH, dtype)
     
 convert()
 

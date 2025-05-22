@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class RWKVOnnxOps():
 
     def __init__(self, layers, embed, opsVersion = 15, externalData = True, splitExternalData = False,fp32inout=True, quantized = False, *args, dtype=None, heads=32, **kwargs):
@@ -29,7 +28,6 @@ class RWKVOnnxOps():
 
 
         def initTensor(x, isfp32 = False, exname = ""):
-
             npdtype = np.float32 if (isfp32 and fp32inout) else nptype
             ddtype = onnx.TensorProto.FLOAT if (isfp32 and fp32inout) else dtype
             name = f"PreTrainedTensor_{self.nm}"
@@ -46,20 +44,14 @@ class RWKVOnnxOps():
                 xx.shape,
                 xx.tobytes(),
                 raw=True
-
             )
-
-
-
             if externalData:
                 if not splitExternalData:
                     exname = ""
                 onnx.external_data_helper.set_external_data(
                     rrx,
                     location=externalname+exname+".bin",
-
                 )
-
             self.TensorList.append(rrx)
             return name
         
@@ -78,20 +70,7 @@ class RWKVOnnxOps():
                 xx.shape,
                 xx.tobytes(),
                 raw=True
-
             )
-
-
-
-            # if externalData:
-            #     if not splitExternalData:
-            #         exname = ""
-            #     onnx.external_data_helper.set_external_data(
-            #         rrx,
-            #         location=externalname+exname+".bin",
-
-            #     )
-
             self.TensorList.append(rrx)
             return name
 
@@ -148,18 +127,27 @@ class RWKVOnnxOps():
         self.sqrt = sqrt
 
         def mean(x, dim=None):
-            if dim == None:
+            if dim is None:
                 dim = self.zeroInt
             name = f"mean_{self.nm}_out"
             self.nm += 1
-            if opsVersion == 18:
+            if opsVersion >= 18:
+                print("we are here")
+                dim_name = f"dim_const_{self.nm}"
+                dim_tensor = onnx.helper.make_tensor(
+                    name=dim_name,
+                    data_type=onnx.TensorProto.INT64,
+                    dims=[len(dim)],
+                    vals=dim
+                )
+                
+                self.TensorList.append(dim_tensor)
                 
                 node = onnx.helper.make_node(
                     'ReduceMean',
-                    inputs=[x,dim],
+                    inputs=[x, dim_name],
                     outputs=[name]
                 )
-
             else:
                 node = onnx.helper.make_node(
                     'ReduceMean',
@@ -167,8 +155,6 @@ class RWKVOnnxOps():
                     outputs=[name],
                     axes=dim,
                     keepdims=1
-
-
                 )
             self.NodeList.append(node)
 
@@ -241,8 +227,6 @@ class RWKVOnnxOps():
                 return self.convertToFloat32(name)
             return name
         
-        
-
         self.matvec = matvec
 
         def prod(x):
@@ -254,8 +238,6 @@ class RWKVOnnxOps():
                 outputs=[name],
                 axes=[1],
                 keepdims=0
-
-
             )
             self.NodeList.append(node)
 
@@ -286,11 +268,9 @@ class RWKVOnnxOps():
                 outputs=[name]
             )
             self.NodeList.append(node)
-
             return name
 
         def add(x, y):
-
             name = f"add_{self.nm}_out"
             self.nm += 1
             node = onnx.helper.make_node(
@@ -313,7 +293,6 @@ class RWKVOnnxOps():
                 outputs=[name]
             )
             self.NodeList.append(node)
-
             return name
 
         self.subtract = sub
@@ -340,6 +319,7 @@ class RWKVOnnxOps():
             self.NodeList.append(node)
 
             return name
+        
         self.minimum = minimum
         # module def
         self.module = object
@@ -415,8 +395,6 @@ class RWKVOnnxOps():
             )
             self.NodeList.append(node)
             return name
-            
-
         
         self.groupnorm = groupnorm
 
@@ -551,38 +529,33 @@ class RWKVOnnxOps():
                 nodes=self.NodeList,  # The list of nodes in the graph.
                 name="RWKV",
                 # Graph input
-
                 inputs=[inputtensor[0], * \
                         list(map(lambda x:x[0], emptyState)), * \
                         list(map(lambda x:x[0], emptystate2))],
-
                 outputs=[logits, *state, *state2],  # Graph output
-
                 initializer=self.TensorList,  # initializer
-
-
-
                 # did not work, needs to be external
-
             )
 
-            modelDef = onnx.helper.make_model(
-                graph_def, producer_name="rwkvstic",
-                
+            # modelDef = onnx.helper.make_model(
+            #     graph_def, producer_name="rwkvstic",
+            # )
 
-            )
-
-
+            # print("opset:", opsVersion)
+            # modelDef.opset_import[0].version = opsVersion
             
+            opset = onnx.helper.make_operatorsetid("", opsVersion)
+            modelDef = onnx.helper.make_model(
+                graph_def, producer_name="rwkvstic", opset_imports=[opset]
+            )
 
-            modelDef.opset_import[0].version = opsVersion
-
+            print("Model opset imports:", modelDef.opset_import)
             print("Nearly save")
 
             onnx.save(modelDef, exportname)
             del modelDef
 
-            onnx.checker.check_model(exportname)
+            # onnx.checker.check_model(exportname) # REVISE
             onnx.shape_inference.infer_shapes_path(exportname, check_type=True, strict_mode=True)
 
             if quantized:

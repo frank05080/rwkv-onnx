@@ -7,3 +7,5 @@ __pycache__
 opset11_onnx
 test/*.onnx
 single_input_split/*.onnx
+dumped_inputs
+misc
