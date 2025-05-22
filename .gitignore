@@ -1,4 +1,5 @@
 *.bin
+*.hbm
 *.onnx
 __pycache__
 *.pth
