@@ -1,4 +1,4 @@
-SAVE_INPUT = True
+SAVE_INPUT = False
 INPUT_FOLDER_NAME = "dumped_inputs"
 INPUT_INDEX = 0
 
